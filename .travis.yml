@@ -2,7 +2,7 @@ language: julia
 os:
 - linux
 julia:
-- 1.0
+- 1.2
 notifications:
   email: false
 git:
@@ -18,17 +18,37 @@ env:
   - BINARYBUILDER_SHARDS_DIR=shards
   - BINARYBUILDER_AUTOMATIC_APPLE=true
   - BINARYBUILDER_USE_CCACHE=true
+  matrix:
+  - TARGET=i686-linux-gnu
+  - TARGET=x86_64-linux-gnu
+  - TARGET=aarch64-linux-gnu
+  - TARGET=arm-linux-gnueabihf
+  - TARGET=powerpc64le-linux-gnu
+  - TARGET=i686-linux-musl
+  - TARGET=x86_64-linux-musl
+  - TARGET=aarch64-linux-musl
+  - TARGET=arm-linux-musleabihf
+  - TARGET=x86_64-apple-darwin14
+  - TARGET=x86_64-unknown-freebsd11.1
+  - TARGET=i686-w64-mingw32
+  - TARGET=x86_64-w64-mingw32
 sudo: required
+jobs:
+  include:
+  - stage: regenerate build.jl
+    script: julia --color=yes build_tarballs.jl --only-buildjl
+    if: tag IS present
 before_script:
 - julia -e 'using Pkg; pkg"add BinaryProvider BinaryBuilder#master; build"'
 script:
-- julia build_tarballs.jl
+- julia --color=yes build_tarballs.jl $TARGET
 deploy:
   provider: releases
   file_glob: true
-  file: products/*
   skip_cleanup: true
+  api_key:
+    secure: r11KGHpckBtvKDBjpAMQZ8XGWNDnu7YLbGVQ3pSOaLQc3xmRGXlRgINERsiaRBfpr5BOIoBG/EPU0vT2HvWIuBLX+CvHmnjO+AcHEPQ3HLHhsOfp2INd91m7/WyWeAUyQxOUIBVpVd9Uj5B5XprO3wbRsbGYHUCHfhqaQ9pCOd/EyYXx1TP0cyXvyK91dZE7gebLwjYVnePysO6s7C7uNMOHMUpSAiQGQukqr9IYhp5gj1NOI4r4FPm1CTlEGzo/brFZ2ylA0azy1O+NYW056APdOQFH6PxhTwOpnK1EH1FFXvHwq2yjYrhPYk2HgKImven3y13n/KwNqWa2oOcNNs09RwPtOjcdTu3TMx+Vidgiwef6CK9njn+Kx6AtlWxT+FTpy9If5XgNt4nM0V6UEVSKVyJWblDicEaBeiSZxl3HiKnTzSKIj6bx/AbSofeQB9ogS6haVhC7nAUGcb/iyctJ+Ry62XmeaTfoAbVM+kRS2zH9M6e1pNnFcAGZ8gCDBp8Oote+WlCJK5eoBsYJLzxXzPQVQxMLaKZZVba3BhTCQGna8EmtVqK/o9UcD1fObrQwTXHCpOOf8p9VaGYTAz0RY4jQGBFBY/cMzH/YieC4b0iIECNpTF1fxvMwPYrrTb6XJDeBr7d39SPmiQdXUOPeToTFaCdPNOk/sCIpP4I=
+  file: products/*
   on:
     repo: JuliaIO/FFMPEGBuilder
-  api-key:
-    secure: syrcQn3MTgQxiE2xHemXhyG3dWk5xPOOuYR/+sr0/aXymvT/AyM1s0hpyRzFRokccqJbBF193qqH/rB8JRIf9I5JI+1touA/SratuhLsGp+5FJbF5SWDrfKmCv4HY27OlJm10lCnXPJab7eJRf86ML9Vvjs7uo//ufDjEzi0ns53yKc8hAuztMSAIVFt89hZt/PyG3KdXLAQOHSjrIiBltfRlzJ3DDRh1THAGf8xCZsHMKrGgd0ptbmBlHUT2ZTHtBvyl6Mjcv+PFb0H2al7bXhJfsqAlMzq6lbRBcwGb2q/45Gfz5akZlf0ausbwzHITP0mxeFr+Weh9oxeQc04CQJWGkArsLoLFmn+w+GSiV+witbi6DNrI4+PY29roKjA38a3jDFveyAh+OpixJmyK3vMpvbKJ+rhdp5T6C0rGQn2JCc+ODvyFR6G8mZuICXO4GjIqB38ctfAjZ0w8jFYqMHVrL+C4tdU3eHWehCSRKqICD6XqHuB7ZmaRSYUXA5QyLek/NuXgb5sjWT+tF+3MNrUgeRgIN0tSUKFAE2fsvsEX4k36M26qqk8SX0KPOdilegTVjF7dUGHwtrJQs84e++DoaQMmA0GmAovtMhb/1wI5Y02Irb/DHZ5P3R/OMZxvpiBXXviRUm6zVhn82jVH5W2L7NNdxsIH2xRfEM6JAQ=
+    tags: true
